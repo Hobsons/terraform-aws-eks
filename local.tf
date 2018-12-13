@@ -9,6 +9,19 @@ locals {
   default_iam_role_id      = "${element(concat(aws_iam_role.workers.*.id, list("")), 0)}"
   kubeconfig_name          = "${var.kubeconfig_name == "" ? "eks_${var.cluster_name}" : var.kubeconfig_name}"
 
+  #Safety check to guarantee a valid cluster version is supplied
+  cluster_supported_versions = ["1.10", "1.11"]
+  cluster_version            = "${contains(local.cluster_supported_versions, var.cluster_version) ? var.cluster_version : local.cluster_supported_versions[0] }"
+
+  #These could have different -v* values moving forward
+  ami_filter_patterns = {
+    "1.10" = "amazon-eks-node-1.10-v20181210"
+    "1.11" = "amazon-eks-node-1.11-v20181210"
+  }
+
+  default_ami_file_pattern = "amazon-eks-node-${local.cluster_version}-v*"
+  ami_name_filter          = "${var.worker_lock_default_ami_version == false ? local.default_ami_file_pattern : local.ami_filter_patterns[local.cluster_version]}"
+
   workers_group_defaults_defaults = {
     name                          = "count.index"                   # Name of the worker group. Literal count.index will never be used but if name is not set, the count.index interpolation will be used.
     ami_id                        = "${data.aws_ami.eks_worker.id}" # AMI ID for the eks workers. If none is provided, Terraform will search for the latest version of their EKS optimized worker AMI.

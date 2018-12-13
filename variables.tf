@@ -115,6 +115,11 @@ variable "worker_sg_ingress_from_port" {
   default     = "1025"
 }
 
+variable "worker_lock_default_ami_version" {
+  description = "Prevents unexpected AMI updates by locking the name filter to a known version at the time of module release"
+  default     = true
+}
+
 variable "kubeconfig_aws_authenticator_command" {
   description = "Command to use to to fetch AWS EKS credentials."
   default     = "aws-iam-authenticator"
